@@ -1,146 +1,85 @@
 using System;
-
-/*
- * =============================================
- *  W02 Project: Journal Program
- * =============================================
- *
- * CREATIVITY & EXCEEDING CORE REQUIREMENTS
- * -----------------------------------------
- * 1. Mood tracking – every entry can optionally record the user's mood.
- * 2. Gratitude counter – users can record how many things they are
- *    grateful for that day (encourages positive reflection).
- * 3. Search functionality – users can search past entries by keyword.
- * 4. Journal statistics – shows total entries, total gratitude items,
- *    and mood distribution.
- * 5. Dedicated PromptGenerator class – clean separation of concerns
- *    (more than the required two classes beyond Program).
- * 6. Robust file handling with a rare separator (~|~) and backward-
- *    compatible loading.
- * 7. Friendly error messages and empty-journal checks.
- * 8. Extra original prompts beyond the five required examples.
- */
-
+using System.Collections.Generic;
 class Program
 {
     static void Main(string[] args)
     {
         Journal journal = new Journal();
-        PromptGenerator promptGenerator = new PromptGenerator();
 
-        Console.WriteLine("Welcome to the Journal Program!");
-        Console.WriteLine("This program helps you build a consistent journaling habit.\n");
-
-        bool running = true;
-        while (running)
+        List<string> prompts = new List<string>
         {
-            DisplayMenu();
+            "Who was the most interesting person I interacted with today?",
+            "What was the best part of my day?",
+            "How did I see the hand of the Lord in my life today?",
+            "What was the strongest emotion I felt today?",
+            "If I had one thing I could do over today, what would it be?",
+            "What is one thing I learned today?"
+        };
+
+        int choice = 0;
+
+        while (choice != 6)
+        {
+            Console.WriteLine("Welcome to the Journal Program!");
+            Console.WriteLine($"You currently have {journal._entries.Count} entries.");
+            Console.WriteLine("1. Write a new entry");
+            Console.WriteLine("2. Display the journal");
+            Console.WriteLine("3. Save the journal to a file");
+            Console.WriteLine("4. Load the journal from a file");
+            Console.WriteLine("5. Write an entry with your own prompt");
+            Console.WriteLine("6. Quit");
             Console.Write("What would you like to do? ");
-            string choice = Console.ReadLine()?.Trim() ?? "";
 
-            switch (choice)
+            choice = int.Parse(Console.ReadLine());
+
+            if (choice == 1)
             {
-                case "1":
-                    WriteNewEntry(journal, promptGenerator);
-                    break;
-                case "2":
-                    journal.DisplayAll();
-                    break;
-                case "3":
-                    SaveJournal(journal);
-                    break;
-                case "4":
-                    LoadJournal(journal);
-                    break;
-                case "5":
-                    SearchJournal(journal);
-                    break;
-                case "6":
-                    journal.DisplayStats();
-                    break;
-                case "7":
-                    promptGenerator.DisplayAllPrompts();
-                    break;
-                case "8":
-                    running = false;
-                    Console.WriteLine("Thank you for journaling today. Keep the habit going!");
-                    break;
-                default:
-                    Console.WriteLine("Invalid option. Please enter a number from 1 to 8.");
-                    break;
+                Random random = new Random();
+                string prompt = prompts[random.Next(prompts.Count)];
+                Console.WriteLine(prompt);
+
+                Console.Write("> ");
+                string response = Console.ReadLine();
+
+                string date = DateTime.Now.ToShortDateString();
+
+                Entry entry = new Entry(date, prompt, response);
+                journal.AddEntry(entry);
             }
+            else if (choice == 2)
+            {
+                journal.DisplayAll();
+            }
+            else if (choice == 3)
+            {
+                Console.Write("Enter a filename: ");
+                string filename = Console.ReadLine();
 
-            Console.WriteLine();
+                journal.SaveToFile(filename);
+                Console.WriteLine("Journal saved.");
+            }
+            else if (choice == 4)
+            {
+                Console.WriteLine("Warning: loading a file will replace your current entries.");
+                Console.Write("Enter a filename: ");
+                string filename = Console.ReadLine();
+
+                journal.LoadFromFile(filename);
+                Console.WriteLine("Journal loaded.");
+            }
+            else if (choice == 5)
+            {
+                Console.Write("Enter your own prompt: ");
+                string prompt = Console.ReadLine();
+
+                Console.Write("> ");
+                string response = Console.ReadLine();
+
+                string date = DateTime.Now.ToShortDateString();
+
+                Entry entry = new Entry(date, prompt, response);
+                journal.AddEntry(entry);
+            }
         }
-    }
-
-    static void DisplayMenu()
-    {
-        Console.WriteLine("Please select one of the following choices:");
-        Console.WriteLine("1. Write a new entry");
-        Console.WriteLine("2. Display the journal");
-        Console.WriteLine("3. Save the journal to a file");
-        Console.WriteLine("4. Load the journal from a file");
-        Console.WriteLine("5. Search entries by keyword");
-        Console.WriteLine("6. Show journal statistics");
-        Console.WriteLine("7. List all available prompts");
-        Console.WriteLine("8. Quit");
-    }
-
-    static void WriteNewEntry(Journal journal, PromptGenerator promptGenerator)
-    {
-        string prompt = promptGenerator.GetRandomPrompt();
-        Console.WriteLine($"\nPrompt: {prompt}");
-        Console.Write("> ");
-        string response = Console.ReadLine() ?? "";
-
-        Console.Write("How are you feeling today? (e.g., Happy, Grateful, Tired, Anxious) [optional]: ");
-        string mood = Console.ReadLine()?.Trim();
-        if (string.IsNullOrWhiteSpace(mood))
-        {
-            mood = "Neutral";
-        }
-
-        Console.Write("How many things are you grateful for today? (number, or press Enter for 0): ");
-        string gratitudeInput = Console.ReadLine()?.Trim() ?? "0";
-        int gratitudeCount = 0;
-        int.TryParse(gratitudeInput, out gratitudeCount);
-        if (gratitudeCount < 0) gratitudeCount = 0;
-
-        string date = DateTime.Now.ToShortDateString();
-        Entry newEntry = new Entry(date, prompt, response, mood, gratitudeCount);
-        journal.AddEntry(newEntry);
-
-        Console.WriteLine("Entry added successfully!");
-    }
-
-    static void SaveJournal(Journal journal)
-    {
-        Console.Write("Enter the filename to save (e.g., myJournal.txt): ");
-        string filename = Console.ReadLine()?.Trim() ?? "journal.txt";
-        if (string.IsNullOrWhiteSpace(filename))
-        {
-            filename = "journal.txt";
-        }
-        journal.SaveToFile(filename);
-    }
-
-    static void LoadJournal(Journal journal)
-    {
-        Console.Write("Enter the filename to load: ");
-        string filename = Console.ReadLine()?.Trim() ?? "";
-        if (string.IsNullOrWhiteSpace(filename))
-        {
-            Console.WriteLine("No filename provided.");
-            return;
-        }
-        journal.LoadFromFile(filename);
-    }
-
-    static void SearchJournal(Journal journal)
-    {
-        Console.Write("Enter a keyword to search for: ");
-        string keyword = Console.ReadLine()?.Trim() ?? "";
-        journal.SearchEntries(keyword);
     }
 }
