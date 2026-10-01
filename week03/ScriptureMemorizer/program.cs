@@ -5,6 +5,11 @@ class Program
 {
     static void Main(string[] args)
     {
+        // Creativity: I added a library containing multiple scriptures
+        // and randomly select one scripture each time the program starts.
+        // This gives the user a different scripture to memorize
+        // instead of always using the same scripture.
+
         // Create a list of scriptures
         List<Scripture> scriptureLibrary = new List<Scripture>
         {
@@ -24,7 +29,8 @@ class Program
             )
         };
 
-        // Select a random scripture
+        // Creativity feature: Randomly select one scripture from
+        // the scripture library each time the program runs.
         Random random = new Random();
         int index = random.Next(scriptureLibrary.Count);
 
