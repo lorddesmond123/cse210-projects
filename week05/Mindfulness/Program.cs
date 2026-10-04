@@ -17,7 +17,7 @@ class Program
 
         while (true)
         {
-            Console.Clear();
+            
 
             Console.WriteLine("Mindfulness Program");
             Console.WriteLine();
